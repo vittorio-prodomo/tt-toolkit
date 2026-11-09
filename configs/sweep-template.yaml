@@ -1,0 +1,58 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# Training Toolkit — Sweep Configuration Template
+#
+# Usage:
+#   tt-sweep --config configs/template.yaml --sweep-config configs/sweep-template.yaml
+#
+# The search_space maps dotted config paths to Optuna param definitions.
+# Supported types: float, int, categorical.
+# ──────────────────────────────────────────────────────────────────────────────
+
+sweep:
+  n_trials: 20
+  pruner: median                       # median, hyperband, or none
+  pruner_n_warmup_epochs: 5            # min epochs before pruning is allowed
+  direction: maximize                  # maximize or minimize
+  metric: val/map                      # Lightning metric to optimize
+
+  # storage: auto                      # default: SQLite in project_dir/.optuna/
+                                       # set to null or use --no-storage for in-memory only
+  # study_name: null                   # default: auto-generated from run_name + timestamp
+
+  search_space:
+    # ── Learning rate & regularization ──
+    lr:
+      type: float
+      low: 1.0e-5
+      high: 1.0e-3
+      log: true
+
+    weight_decay:
+      type: float
+      low: 1.0e-4
+      high: 0.1
+      log: true
+
+    # ── Augmentation ──
+    # augmentation.mosaic_p:
+    #   type: float
+    #   low: 0.0
+    #   high: 0.5
+
+    # augmentation.copy_paste_p:
+    #   type: float
+    #   low: 0.0
+    #   high: 0.5
+
+    # augmentation.color_jitter:
+    #   type: float
+    #   low: 0.0
+    #   high: 0.4
+
+    # ── Model variant ──
+    # model.name:
+    #   type: categorical
+    #   choices:
+    #     - rf-detr-seg-small
+    #     - rf-detr-seg-medium
+    #     - rf-detr-seg-large

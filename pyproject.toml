@@ -1,0 +1,121 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "training-toolkit"
+version = "0.1.0"
+description = "Modular instance segmentation training toolkit with unified model adapters."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10,<3.14"
+authors = [
+    { name = "Vittorio Prodomo" },
+]
+keywords = [
+    "instance-segmentation",
+    "training",
+    "pytorch-lightning",
+    "computer-vision",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Image Recognition",
+]
+dependencies = [
+    "torch>=2.0",
+    "torchvision>=0.15",
+    "pytorch-lightning>=2.0",
+    "torchmetrics[detection]>=1.0",
+    "albumentations>=1.4",
+    "pycocotools>=2.0",
+    "faster-coco-eval>=1.6",
+    "tidecv>=1.0",
+    "numpy",
+    "opencv-python-headless>=4.5",
+    "Pillow",
+    "PyYAML>=5.0",
+    "rich>=13.0",
+    "tqdm",
+    "tensorboard>=2.20.0",
+    "transformers>=4.40,<5",
+    "matplotlib>=3.5",
+    "pyvips>=3.1.1",
+    "posix-ipc>=1.3.2",
+]
+
+[project.optional-dependencies]
+mask2former = ["transformers>=4.30"]
+rfdetr = ["rfdetr"]
+sweep = ["optuna>=3.0"]
+wandb = ["wandb>=0.15"]
+mlflow = ["mlflow>=2.0"]
+export = ["onnx>=1.16.0,<1.20", "onnxsim", "onnx_graphsurgeon", "onnxruntime", "polygraphy"]
+inference = ["onnxruntime"]
+tensorrt = ["tensorrt-cu12", "cuda-bindings"]
+sahi = ["sahi"]
+yolo = ["ultralytics"]
+fiftyone = ["fiftyone", "voxel51-eta", "fiftyone-brain"]
+all = ["training-toolkit[mask2former,rfdetr,yolo,sweep,wandb,mlflow,export,inference,tensorrt,sahi]"]
+dev = ["pytest>=7.0", "pytest-cov", "pytest-xdist", "pip"]
+
+[project.scripts]
+tt-train = "training_toolkit.scripts.train:main"
+tt-sweep = "training_toolkit.scripts.sweep:main"
+tt-export = "training_toolkit.scripts.export:main"
+tt-infer = "training_toolkit.scripts.infer:main"
+tt-gen-serverless = "training_toolkit.scripts.gen_serverless:main"
+tt-deploy = "training_toolkit.scripts.deploy:main"
+tt-bench-batch = "training_toolkit.scripts.bench_batch:main"
+
+[project.urls]
+Homepage = "https://github.com/vittorio-prodomo/tt-toolkit"
+Issues = "https://github.com/vittorio-prodomo/tt-toolkit/issues"
+
+[tool.pytest.ini_options]
+markers = [
+    "slow: marks tests that require large downloads or long runtime",
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[tool.uv.sources]
+# Patched forks, fetched from GitHub at pinned commits, so this toolkit installs on its own
+# (uv applies these sources for whoever depends on it). Bump a rev when a fork changes.
+rfdetr = { git = "https://github.com/vittorio-prodomo/rf-detr", rev = "6b5388baa4926e706bb132e5ec1a51d4177c5943" }
+ultralytics = { git = "https://github.com/vittorio-prodomo/ultralytics", rev = "d5daaea9f533eb29d95344786defe59078e088d4" }
+sahi = { git = "https://github.com/vittorio-prodomo/sahi", rev = "d7f191e592d214f72862bea07cff13a73f339d17" }
+fiftyone = { git = "https://github.com/vittorio-prodomo/fiftyone", rev = "dcb24fac0a297e83624425f92aef36a5c62de04e" }
+voxel51-eta = { git = "https://github.com/vittorio-prodomo/eta", rev = "46eb981821a1d36dd5c17efd74afc0949c631c10" }
+fiftyone-brain = { git = "https://github.com/vittorio-prodomo/fiftyone-brain", rev = "f49cac2b2e379d7d1f644f98e43967a30c408885" }
+torch = { index = "pytorch-cu128" }
+torchvision = { index = "pytorch-cu128" }
+
+[tool.uv]
+override-dependencies = [
+    # Local forks — allow any version to bypass fiftyone's pinned constraints
+    "fiftyone-brain>=0",
+    "voxel51-eta>=0",
+]
+# graphql-core 3.3 breaks the FiftyOne forks' GraphQL stack.
+constraint-dependencies = ["graphql-core<3.3"]
+# fiftyone + eta in setuptools' "compat" editable mode: a .pth puts each repo
+# root on sys.path, so the forks' real packages beat the fiftyone/ namespace
+# folders that fiftyone-brain and fiftyone-db drop into site-packages (the
+# default editable import hook runs after the path search and loses).
+config-settings-package = { fiftyone = { editable_mode = "compat" }, voxel51-eta = { editable_mode = "compat" } }
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/training_toolkit"]

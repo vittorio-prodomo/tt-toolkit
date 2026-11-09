@@ -1,0 +1,105 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# Training Toolkit — Configuration Template
+#
+# Uncomment and edit the options you need. Commented values show defaults.
+# Only `data.dataset_path` is required (set it here or via --dataset-path);
+# everything else has sensible defaults.
+# ──────────────────────────────────────────────────────────────────────────────
+
+# ── Model ────────────────────────────────────────────────────────────────────
+# model:
+  # name: rf-detr-seg-large           # rf-detr-seg-{nano,small,medium,large,preview}
+                                     # mask2former-swin-{tiny,small,base,large}
+  # backend: null                   # auto-detected from name (rfdetr / mask2former)
+  # pretrained: auto                # "auto" (COCO weights), "none", or path to .pt/.ckpt
+  # num_classes: null               # auto-detected from dataset annotations
+  # extra: {}                       # backend-specific pass-through options, e.g.:
+  #   dice_weight: 5.0              #   (mask2former) Mask2FormerConfig overrides
+  #   mask_weight: 20.0
+
+# ── Data ─────────────────────────────────────────────────────────────────────
+data:
+  dataset_path: /path/to/dataset    # REQUIRED — root of the dataset
+  # layout: coco                    # coco, roboflow, or yolo
+  # batch_size: 8
+  # workers: 8                      # DataLoader workers (auto: min(cpu_count, 8))
+  # prefetch_factor: 4
+  # train_split: train
+  # val_split: val
+
+# ── Augmentation ─────────────────────────────────────────────────────────────
+augmentation:
+  # imgsz: null                     # null = auto-detect from model variant
+
+  # -- Multi-sample (mutually exclusive, sum <= 1.0) --
+  # mosaic_p: 0.0
+  # cutmix_p: 0.0
+  # mixup_p: 0.0
+  # mixup_alpha: 1.5
+
+  # -- CopyPaste (independent) --
+  # copy_paste_p: 0.0
+  # copy_paste_max_instances: 5
+
+  # -- Single-image spatial --
+  # random_resized_crop: false
+  # crop_scale_min: 0.5
+  # crop_scale_max: 1.0
+  # horizontal_flip: 0.0
+  # vertical_flip: 0.0
+  # rotate_degrees: 0.0              # max rotation ±degrees
+  # translate: 0.0                   # max shift as fraction of image size
+  # shear: 0.0                       # max shear angle in degrees
+  # affine_p: 0.5                    # probability of applying the affine group
+
+  # -- Color / photometric --
+  # color_jitter: 0.0
+  # brightness_contrast_p: 0.0
+  # clahe_p: 0.0
+
+  # -- Noise / blur / quality --
+  # gaussian_blur_p: 0.0
+  # gauss_noise_p: 0.0
+  # downscale_p: 0.0
+
+  # -- Perspective --
+  # perspective_p: 0.0
+
+  # -- Multi-scale training (batch-level resize each iteration) --
+  # multi_scale: false
+  # multi_scale_min: 0.7
+  # multi_scale_max: 1.4
+
+  # -- Annotation cleanup --
+  # merge_overlapping_masks: false    # merge same-class masks with non-zero overlap
+
+# ── Training ─────────────────────────────────────────────────────────────────
+# epochs: 200
+# lr: 1e-4
+# weight_decay: 0.01
+# optimizer: AdamW
+# scheduler: cosine                 # cosine, linear, one_cycle, or none
+# warmup_epochs: 5
+
+# ── Early stopping & checkpointing ──────────────────────────────────────────
+# patience: 50                      # epochs without improvement before stopping
+# monitor_metric: val/map
+# save_top_k: 3                     # keep top-K checkpoints by monitor_metric
+# save_period: -1                   # save every N epochs (-1 = disabled)
+
+# ── Hardware & precision ─────────────────────────────────────────────────────
+# device: [0]                       # GPU indices (e.g. [0, 1] for multi-GPU)
+# precision: bf16-mixed               # 16-mixed, bf16-mixed, 32-true
+# nbs: 64                         # nominal batch size — accumulate to simulate this effective batch size
+
+# ── Run management ───────────────────────────────────────────────────────────
+# fraction: 1.0                     # use a subset of the dataset (e.g. 0.1 for smoke test)
+# project_dir: runs
+# run_name: run
+# overwrite: false                  # wipe run directory if it already exists
+# log_to_file: true
+# loggers: [mlflow, wandb]           # any of: tensorboard, wandb, mlflow
+# log_images: false                  # log val images to W&B (requires wandb logger)
+# verbose_metrics: true              # print full COCO-style mAP breakdown (by size + per-class)
+# diagnostics_period: 5             # epoch interval for results.png and val comparison images
+# seed: 42                          # null to disable deterministic seeding
